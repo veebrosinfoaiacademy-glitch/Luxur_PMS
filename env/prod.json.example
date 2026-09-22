@@ -1,0 +1,4 @@
+{
+  "POCKETBASE_URL": "https://REPLACE_WITH_PROD_POCKETBASE_DOMAIN",
+  "APP_ENV": "prod"
+}

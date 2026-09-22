@@ -53,3 +53,11 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+env/prod.json
+
+# Local PocketBase (each developer runs their own instance; see
+# scripts/setup_pocketbase.*). pb_migrations IS committed — see pocketbase/.gitignore.
+pocketbase/pocketbase
+pocketbase/pocketbase.exe
+pocketbase/pb_data/
+pocketbase/pb_public/
