@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../models/telecaller_lead.dart';
 import '../state/telecaller_view_model.dart';
+
+/// Caps content width on very wide monitors so the table/cards don't
+/// stretch edge-to-edge; a no-op on laptop/desktop widths below this.
+const double _maxContentWidth = 1280;
 
 enum _FollowUpFilter { all, pending, converted }
 
@@ -32,7 +38,8 @@ class TelecallerDashboardView extends StatefulWidget {
   });
 
   @override
-  State<TelecallerDashboardView> createState() => _TelecallerDashboardViewState();
+  State<TelecallerDashboardView> createState() =>
+      _TelecallerDashboardViewState();
 }
 
 class _TelecallerDashboardViewState extends State<TelecallerDashboardView> {
@@ -67,144 +74,177 @@ class _TelecallerDashboardViewState extends State<TelecallerDashboardView> {
           _FollowUpFilter.converted => leads.where((l) => l.converted).toList(),
         };
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xxxl,
+                vertical: AppSpacing.xxl,
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _greeting,
+                              style: AppTypography.headingDisplay,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Manage patient enquiries and registrations.',
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        padding: const EdgeInsets.only(left: AppSpacing.lg),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: Color(0xFFE5E7EB),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          '"Every new connection\nbrings a healthier tomorrow."',
+                          style: AppTypography.quote,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(_greeting, style: AppTypography.headingDisplay),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage patient enquiries and registrations.',
-                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        Expanded(
+                          child: _ActionCard(
+                            key: const Key('action_add_lead'),
+                            icon: Icons.person_add_alt_1_outlined,
+                            iconBg: AppColors.primaryBgLight,
+                            iconColor: AppColors.primary,
+                            title: 'Add Patient',
+                            subtitle: 'Register a new patient manually.',
+                            buttonLabel: 'Add Patient',
+                            buttonIcon: Icons.add,
+                            filled: true,
+                            onTap: widget.onAddLead,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xl),
+                        Expanded(
+                          child: _ActionCard(
+                            key: const Key('action_import'),
+                            icon: Icons.description_outlined,
+                            iconBg: AppColors.accentBlueBg,
+                            iconColor: AppColors.accentBlue,
+                            title: 'Import Patients',
+                            subtitle: 'Bulk upload patient data from Excel or CSV file.',
+                            buttonLabel: 'Import from Excel / CSV',
+                            buttonIcon: Icons.upload_outlined,
+                            filled: false,
+                            onTap: widget.onImport,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.xxl),
+
                   Container(
-                    constraints: const BoxConstraints(maxWidth: 300),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: const BoxDecoration(
-                      border: Border(left: BorderSide(color: Color(0xFFD1D5DB), width: 1.5)),
+                    padding: const EdgeInsets.all(AppSpacing.xxl),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
                     ),
-                    child: Text(
-                      '"Every new connection\nbrings a healthier tomorrow."',
-                      style: AppTypography.quote,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.event_available_outlined,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Follow-Up Required',
+                                    style: AppTypography.headingSmall,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Text(
+                                    'Leads you\'ve added that haven\'t been converted yet — follow up to bring them in.',
+                                    style: AppTypography.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            _FilterDropdown(
+                              value: _filter,
+                              onChanged: (v) => setState(() => _filter = v),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (widget.viewModel.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSpacing.xxxl,
+                            ),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (filtered.isEmpty)
+                          Padding(
+                            key: const Key('follow_up_empty_state'),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xxxl,
+                            ),
+                            child: Center(
+                              child: Text(
+                                leads.isEmpty
+                                    ? 'No leads yet. Add one manually or import a spreadsheet.'
+                                    : 'Nothing to follow up on right now.',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          _FollowUpTable(
+                            leads: filtered,
+                            onCall: _callLead,
+                            onOpen: widget.onOpenLead,
+                          ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
-
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: _ActionCard(
-                        key: const Key('action_add_lead'),
-                        icon: Icons.person_add_alt_1_outlined,
-                        iconBg: AppColors.primaryBgLight,
-                        iconColor: AppColors.primary,
-                        title: 'Add Patient',
-                        subtitle: 'Register a new patient manually.',
-                        buttonLabel: 'Add Patient',
-                        buttonIcon: Icons.add,
-                        filled: true,
-                        onTap: widget.onAddLead,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: _ActionCard(
-                        key: const Key('action_import'),
-                        icon: Icons.description_outlined,
-                        iconBg: AppColors.accentBlueBg,
-                        iconColor: AppColors.accentBlue,
-                        title: 'Import Patients',
-                        subtitle: 'Bulk upload patient data from Excel or CSV file.',
-                        buttonLabel: 'Import from Excel / CSV',
-                        buttonIcon: Icons.upload_outlined,
-                        filled: false,
-                        onTap: widget.onImport,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.event_available_outlined, color: AppColors.primary, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Follow-Up Required', style: AppTypography.headingSmall),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Leads you\'ve added that haven\'t been converted yet — follow up to bring them in.',
-                                style: AppTypography.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        _FilterDropdown(
-                          value: _filter,
-                          onChanged: (v) => setState(() => _filter = v),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    if (widget.viewModel.isLoading)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else if (filtered.isEmpty)
-                      Padding(
-                        key: const Key('follow_up_empty_state'),
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Center(
-                          child: Text(
-                            leads.isEmpty
-                                ? 'No leads yet. Add one manually or import a spreadsheet.'
-                                : 'Nothing to follow up on right now.',
-                            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ),
-                      )
-                    else
-                      _FollowUpTable(
-                        leads: filtered,
-                        onCall: _callLead,
-                        onOpen: widget.onOpenLead,
-                      ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -222,7 +262,9 @@ class _FilterDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('follow_up_filter_dropdown'),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(8),
@@ -231,11 +273,20 @@ class _FilterDropdown extends StatelessWidget {
         child: DropdownButton<_FollowUpFilter>(
           value: value,
           onChanged: (v) => v != null ? onChanged(v) : null,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textPrimary),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            color: AppColors.textPrimary,
+          ),
           items: const [
             DropdownMenuItem(value: _FollowUpFilter.all, child: Text('All')),
-            DropdownMenuItem(value: _FollowUpFilter.pending, child: Text('Pending')),
-            DropdownMenuItem(value: _FollowUpFilter.converted, child: Text('Converted')),
+            DropdownMenuItem(
+              value: _FollowUpFilter.pending,
+              child: Text('Pending'),
+            ),
+            DropdownMenuItem(
+              value: _FollowUpFilter.converted,
+              child: Text('Converted'),
+            ),
           ],
         ),
       ),
@@ -248,24 +299,40 @@ class _FollowUpTable extends StatelessWidget {
   final void Function(TelecallerLead) onCall;
   final void Function(TelecallerLead)? onOpen;
 
-  const _FollowUpTable({required this.leads, required this.onCall, this.onOpen});
+  const _FollowUpTable({
+    required this.leads,
+    required this.onCall,
+    this.onOpen,
+  });
+
+  // Table gives each cell a *tight* width constraint equal to its column
+  // width, so any child without its own intrinsic sizing (a badge's colored
+  // background, a button's ink surface) stretches to fill it. Align resets
+  // that to the child's natural size — this is what was making the status
+  // pill and Follow Up button look stretched across their columns.
+  static const _cellPadding = EdgeInsets.symmetric(
+    vertical: AppSpacing.md,
+    horizontal: AppSpacing.sm,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Table(
       key: const Key('follow_up_table'),
       columnWidths: const {
-        0: FlexColumnWidth(0.5),
-        1: FlexColumnWidth(2.2),
-        2: FlexColumnWidth(2.0),
-        3: FlexColumnWidth(1.6),
-        4: FlexColumnWidth(1.4),
-        5: FlexColumnWidth(1.4),
+        0: FlexColumnWidth(0.4),
+        1: FlexColumnWidth(2.4),
+        2: FlexColumnWidth(1.8),
+        3: FlexColumnWidth(1.3),
+        4: FlexColumnWidth(1.1),
+        5: FlexColumnWidth(1.3),
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         TableRow(
-          decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB)))),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+          ),
           children: [
             _header('#'),
             _header('Name'),
@@ -282,40 +349,100 @@ class _FollowUpTable extends StatelessWidget {
 
   TableRow _row(int index, TelecallerLead lead) {
     return TableRow(
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6)))),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
+      ),
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text('$index', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF6B7280))),
-        ),
-        InkWell(
-          onTap: onOpen != null ? () => onOpen!(lead) : null,
+          padding: _cellPadding,
           child: Text(
-            lead.name,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary),
+            '$index',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: const Color(0xFF6B7280),
+            ),
           ),
         ),
-        Text(
-          '+91 ${lead.phone}',
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF374151)),
+        Padding(
+          padding: _cellPadding,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: InkWell(
+              onTap: onOpen != null ? () => onOpen!(lead) : null,
+              child: Text(
+                lead.name,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
         ),
-        Text(
-          '${lead.created.day}/${lead.created.month}/${lead.created.year}',
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF6B7280)),
+        Padding(
+          padding: _cellPadding,
+          child: Text(
+            '+91 ${lead.phone}',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: const Color(0xFF374151),
+            ),
+          ),
         ),
-        lead.converted
-            ? const StatusBadge(label: 'Converted', type: StatusBadgeType.completed)
-            : const StatusBadge(label: 'Pending', type: StatusBadgeType.urgent),
-        TextButton.icon(
-          key: Key('follow_up_call_${lead.id}'),
-          onPressed: () => onCall(lead),
-          icon: const Icon(Icons.call_outlined, size: 15),
-          label: const Text('Follow Up'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            backgroundColor: AppColors.primaryBgLight,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            textStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+        Padding(
+          padding: _cellPadding,
+          child: Text(
+            '${lead.created.day}/${lead.created.month}/${lead.created.year}',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: const Color(0xFF6B7280),
+            ),
+          ),
+        ),
+        Padding(
+          padding: _cellPadding,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: lead.converted
+                ? const StatusBadge(
+                    label: 'Converted',
+                    type: StatusBadgeType.completed,
+                  )
+                : const StatusBadge(
+                    label: 'Pending',
+                    type: StatusBadgeType.urgent,
+                  ),
+          ),
+        ),
+        Padding(
+          padding: _cellPadding,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: SizedBox(
+              height: 30,
+              child: TextButton.icon(
+                key: Key('follow_up_call_${lead.id}'),
+                onPressed: () => onCall(lead),
+                icon: const Icon(Icons.call_outlined, size: 14),
+                label: const Text('Follow Up'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  backgroundColor: AppColors.primaryBgLight,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  textStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -324,7 +451,8 @@ class _FollowUpTable extends StatelessWidget {
 
   Widget _header(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm)
+          .copyWith(bottom: AppSpacing.md),
       child: Text(text, style: AppTypography.tableHeader),
     );
   }
@@ -357,46 +485,65 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: iconBg.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(28)),
-            child: Icon(icon, color: iconColor, size: 26),
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(23),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(height: 16),
-          Text(title, style: AppTypography.headingSmall.copyWith(fontSize: 17)),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.md),
+          Text(title, style: AppTypography.headingSmall.copyWith(fontSize: 16)),
+          const SizedBox(height: AppSpacing.xs),
           Text(subtitle, style: AppTypography.bodySmall),
-          const SizedBox(height: 18),
+          const SizedBox(height: AppSpacing.lg),
           filled
               ? ElevatedButton.icon(
                   onPressed: onTap,
-                  icon: Icon(buttonIcon, size: 18),
+                  icon: Icon(buttonIcon, size: 17),
                   label: Text(buttonLabel),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
+                    ),
+                    textStyle: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                     elevation: 0,
                   ),
                 )
               : OutlinedButton.icon(
                   onPressed: onTap,
-                  icon: Icon(buttonIcon, size: 18),
+                  icon: Icon(buttonIcon, size: 17),
                   label: Text(buttonLabel),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     backgroundColor: Colors.white,
                     side: BorderSide(color: AppColors.border),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
+                    ),
+                    textStyle: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
         ],

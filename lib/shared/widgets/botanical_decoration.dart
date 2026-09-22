@@ -1,26 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/theme/app_colors.dart';
 
 class BotanicalDecoration extends StatelessWidget {
-  const BotanicalDecoration({super.key});
+  /// When true, renders smaller and lower-contrast — for sidebars where the
+  /// decoration should read as a quiet footer, not compete with navigation.
+  /// Defaults to false so existing (Admin) usage is unaffected.
+  final bool compact;
+
+  const BotanicalDecoration({super.key, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
+    final height = compact ? 160.0 : 240.0;
+    final paintSize = compact ? const Size(130, 190) : const Size(180, 260);
+    final opacity = compact ? 0.22 : 0.35;
+    final fontSize = compact ? 14.0 : 19.0;
+    final textOpacity = compact ? 0.75 : 1.0;
+
     return SizedBox(
-      height: 240,
+      height: height,
       width: double.infinity,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // Elegant botanical leaf branch illustration
           Positioned(
-            left: 40,
-            bottom: -30,
+            left: compact ? 24 : 40,
+            bottom: compact ? -18 : -30,
             child: Opacity(
-              opacity: 0.35,
+              opacity: opacity,
               child: CustomPaint(
-                size: const Size(180, 260),
+                size: paintSize,
                 painter: _BotanicalBranchPainter(),
               ),
             ),
@@ -28,51 +40,56 @@ class BotanicalDecoration extends StatelessWidget {
           // Slogan & Divider at the bottom left
           Positioned(
             left: 20,
-            bottom: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Better',
-                  style: GoogleFonts.ebGaramond(
-                    fontSize: 19,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF8C7F72),
-                    height: 1.1,
+            bottom: compact ? 16 : 24,
+            child: Opacity(
+              opacity: textOpacity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    compact ? 'Better People' : 'Better',
+                    style: GoogleFonts.ebGaramond(
+                      fontSize: fontSize,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF8C7F72),
+                      height: 1.1,
+                    ),
                   ),
-                ),
-                Text(
-                  'People',
-                  style: GoogleFonts.ebGaramond(
-                    fontSize: 19,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF8C7F72),
-                    height: 1.1,
+                  if (!compact) ...[
+                    Text(
+                      'People',
+                      style: GoogleFonts.ebGaramond(
+                        fontSize: fontSize,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF8C7F72),
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                  Text(
+                    'Brighter You',
+                    style: GoogleFonts.ebGaramond(
+                      fontSize: fontSize,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF8C7F72),
+                      height: 1.1,
+                    ),
                   ),
-                ),
-                Text(
-                  'Brighter You',
-                  style: GoogleFonts.ebGaramond(
-                    fontSize: 19,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF8C7F72),
-                    height: 1.1,
+                  SizedBox(height: compact ? 6 : 8),
+                  Container(
+                    width: 22,
+                    height: 1.5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB0A292),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 22,
-                  height: 1.5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB0A292),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -195,13 +212,7 @@ class _BotanicalBranchPainter extends CustomPainter {
     );
 
     // Top terminal leaf
-    drawLeaf(
-      size.width * 0.65,
-      size.height * 0.05,
-      size.width * 0.75,
-      0,
-      2.0,
-    );
+    drawLeaf(size.width * 0.65, size.height * 0.05, size.width * 0.75, 0, 2.0);
   }
 
   @override

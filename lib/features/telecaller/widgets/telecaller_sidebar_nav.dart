@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/clinic_logo.dart';
 import '../../../shared/widgets/botanical_decoration.dart';
 import '../presentation/telecaller_shell.dart';
+
+const double _sidebarWidth = 248;
+const double _navItemHeight = 42;
 
 /// Telecaller-scoped sidebar. Deliberately a separate small widget rather
 /// than reusing shared/widgets/sidebar_nav.dart, which is coupled to the
@@ -26,12 +31,13 @@ class TelecallerSidebarNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onDashboardOrItsActions = currentSection == TelecallerSection.dashboard ||
+    final onDashboardOrItsActions =
+        currentSection == TelecallerSection.dashboard ||
         currentSection == TelecallerSection.addLead ||
         currentSection == TelecallerSection.import;
 
     return Container(
-      width: 250,
+      width: _sidebarWidth,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(right: BorderSide(color: AppColors.border, width: 1)),
@@ -41,11 +47,16 @@ class TelecallerSidebarNav extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.only(left: 24, top: 26, bottom: 32, right: 16),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.xxl,
+                AppSpacing.xl,
+                AppSpacing.xxl,
+                AppSpacing.xl,
+              ),
               child: ClinicLogo(),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Column(
                 children: [
                   _NavItem(
@@ -55,7 +66,7 @@ class TelecallerSidebarNav extends StatelessWidget {
                     isSelected: onDashboardOrItsActions,
                     onTap: () => onSectionSelected(TelecallerSection.dashboard),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   _NavItem(
                     key: const Key('nav_telecaller_leads'),
                     icon: Icons.people_outline_rounded,
@@ -63,7 +74,7 @@ class TelecallerSidebarNav extends StatelessWidget {
                     isSelected: currentSection == TelecallerSection.leadList,
                     onTap: () => onSectionSelected(TelecallerSection.leadList),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   _NavItem(
                     key: const Key('nav_telecaller_settings'),
                     icon: Icons.settings_outlined,
@@ -74,8 +85,8 @@ class TelecallerSidebarNav extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
-            const BotanicalDecoration(),
+            const SizedBox(height: AppSpacing.xxxl),
+            const BotanicalDecoration(compact: true),
           ],
         ),
       ),
@@ -123,20 +134,26 @@ class _NavItemState extends State<_NavItem> {
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeInOut,
           width: double.infinity,
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
+          height: _navItemHeight,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(widget.icon, color: contentColor, size: 20),
-              const SizedBox(width: 14),
+              Icon(widget.icon, color: contentColor, size: 19),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   widget.label,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13.5,
-                    fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontWeight: widget.isSelected
+                        ? FontWeight.w600
+                        : FontWeight.w500,
                     color: contentColor,
                     letterSpacing: -0.1,
                   ),
