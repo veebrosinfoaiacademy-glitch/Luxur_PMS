@@ -53,3 +53,11 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+
+# PocketBase local binaries & database data
+tools/*
+!tools/.gitkeep
+tools/pocketbase*
+pb_data/
+**/pb_data/
+
