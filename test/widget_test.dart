@@ -1,21 +1,21 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// See test/routing_test.dart for authenticated-state coverage (Telecaller
+// vs Admin routing, sign-out). This file only checks the unauthenticated
+// boot state, since main.dart now gates on a real login screen instead of
+// going straight to a dashboard.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pms_vbis/main.dart';
+import 'package:pms_vbis/core/network/pocketbase_client.dart';
 
 void main() {
-  testWidgets('PMSApp mounts and displays clinic header', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('PMSApp mounts and shows the login screen when signed out', (WidgetTester tester) async {
+    PocketBaseClient.instance.authStore.clear();
+
     await tester.pumpWidget(const PMSApp());
     await tester.pump();
 
-    // Verify that the clinic navigation is present.
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.byKey(const Key('login_submit_button')), findsOneWidget);
   });
 }
