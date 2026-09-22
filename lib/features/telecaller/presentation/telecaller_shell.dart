@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pocketbase/pocketbase.dart';
+
 import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../repositories/telecaller_lead_repository.dart';
@@ -24,7 +26,11 @@ class TelecallerShell extends StatefulWidget {
   final AuthService authService;
   final PocketBase pb;
 
-  const TelecallerShell({super.key, required this.authService, required this.pb});
+  const TelecallerShell({
+    super.key,
+    required this.authService,
+    required this.pb,
+  });
 
   @override
   State<TelecallerShell> createState() => _TelecallerShellState();
@@ -35,6 +41,7 @@ class _TelecallerShellState extends State<TelecallerShell> {
   String _leadListInitialQuery = '';
   late final TelecallerLeadRepository _repository;
   late final TelecallerViewModel _viewModel;
+  final _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -46,6 +53,7 @@ class _TelecallerShellState extends State<TelecallerShell> {
   @override
   void dispose() {
     _viewModel.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -62,31 +70,46 @@ class _TelecallerShellState extends State<TelecallerShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Row(
-        children: [
-          TelecallerSidebarNav(
-            currentSection: _section,
-            onSectionSelected: _navigateTo,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                TelecallerTopHeader(
-                  authService: widget.authService,
-                  onSearchSubmitted: _searchFromHeader,
+    return CallbackShortcuts(
+      bindings: {
+        LogicalKeySet(
+          LogicalKeyboardKey.control,
+          LogicalKeyboardKey.keyK,
+        ): () =>
+            _searchFocusNode.requestFocus(),
+        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK): () =>
+            _searchFocusNode.requestFocus(),
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Row(
+            children: [
+              TelecallerSidebarNav(
+                currentSection: _section,
+                onSectionSelected: _navigateTo,
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    TelecallerTopHeader(
+                      authService: widget.authService,
+                      onSearchSubmitted: _searchFromHeader,
+                      searchFocusNode: _searchFocusNode,
+                    ),
+                    Expanded(
+                      child: ListenableBuilder(
+                        listenable: _viewModel,
+                        builder: (context, _) => _buildCurrentView(),
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: ListenableBuilder(
-                    listenable: _viewModel,
-                    builder: (context, _) => _buildCurrentView(),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

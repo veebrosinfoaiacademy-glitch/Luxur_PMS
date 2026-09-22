@@ -48,7 +48,7 @@ class BotanicalDecoration extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    compact ? 'Better People' : 'Better',
+                    'Better',
                     style: GoogleFonts.ebGaramond(
                       fontSize: fontSize,
                       fontStyle: FontStyle.italic,
@@ -57,18 +57,16 @@ class BotanicalDecoration extends StatelessWidget {
                       height: 1.1,
                     ),
                   ),
-                  if (!compact) ...[
-                    Text(
-                      'People',
-                      style: GoogleFonts.ebGaramond(
-                        fontSize: fontSize,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF8C7F72),
-                        height: 1.1,
-                      ),
+                  Text(
+                    'People',
+                    style: GoogleFonts.ebGaramond(
+                      fontSize: fontSize,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF8C7F72),
+                      height: 1.1,
                     ),
-                  ],
+                  ),
                   Text(
                     'Brighter You',
                     style: GoogleFonts.ebGaramond(

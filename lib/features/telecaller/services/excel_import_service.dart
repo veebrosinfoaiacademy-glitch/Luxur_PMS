@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
+
 import '../../../core/utils/phone_utils.dart';
 
 /// One row read from the uploaded file, before it's checked against the
@@ -30,9 +32,9 @@ class InvalidRow {
   InvalidRow(this.row, this.issue);
 
   String get reason => switch (issue) {
-        RowIssue.missingName => 'Missing name',
-        RowIssue.invalidPhone => 'Invalid phone number: "${row.rawPhone}"',
-      };
+    RowIssue.missingName => 'Missing name',
+    RowIssue.invalidPhone => 'Invalid phone number: "${row.rawPhone}"',
+  };
 }
 
 class ValidRow {
@@ -84,7 +86,12 @@ class HeaderMappingException implements Exception {
 /// TelecallerLeadRepository.
 class ExcelImportService {
   static const _nameAliases = ['name', 'lead name', 'patient name'];
-  static const _phoneAliases = ['phone', 'mobile', 'phone number', 'mobile number'];
+  static const _phoneAliases = [
+    'phone',
+    'mobile',
+    'phone number',
+    'mobile number',
+  ];
   static const _addressAliases = ['address'];
   static const _concernAliases = ['concern', 'concerns', 'notes'];
 
@@ -99,14 +106,19 @@ class ExcelImportService {
     }
 
     final rows = sheet.rows
-        .map((cells) => cells.map((c) => c?.value?.toString().trim() ?? '').toList())
+        .map(
+          (cells) =>
+              cells.map((c) => c?.value?.toString().trim() ?? '').toList(),
+        )
         .toList();
     return _classify(rows);
   }
 
   ParsedImport parseCsv(String content) {
     final decoded = Csv().decode(content);
-    final rows = decoded.map((row) => row.map((c) => c?.toString().trim() ?? '').toList()).toList();
+    final rows = decoded
+        .map((row) => row.map((c) => c?.toString().trim() ?? '').toList())
+        .toList();
     if (rows.isEmpty) {
       throw HeaderMappingException('The file is empty.');
     }
@@ -136,7 +148,8 @@ class ExcelImportService {
     final duplicatesInFile = <DuplicateRow>[];
     final invalid = <InvalidRow>[];
     var totalDataRows = 0;
-    final seenPhonesInFile = <String, int>{}; // normalized phone -> first row number
+    final seenPhonesInFile =
+        <String, int>{}; // normalized phone -> first row number
 
     for (var r = 1; r < rows.length; r++) {
       final cells = rows[r];
@@ -190,5 +203,27 @@ class ExcelImportService {
   String _cell(List<String> cells, int index) {
     if (index >= cells.length) return '';
     return cells[index].trim();
+  }
+
+  /// Builds a minimal, real .xlsx template — the exact header row this
+  /// parser expects, plus one filled example row — for the "Download
+  /// Template" action. Not a static asset: generated here so it can never
+  /// drift out of sync with the columns [_classify] actually reads.
+  Uint8List buildTemplateBytes() {
+    final excel = Excel.createExcel();
+    final sheetName = excel.getDefaultSheet()!;
+    excel.appendRow(sheetName, [
+      TextCellValue('Name'),
+      TextCellValue('Phone'),
+      TextCellValue('Address'),
+      TextCellValue('Concern'),
+    ]);
+    excel.appendRow(sheetName, [
+      TextCellValue('Priya Menon'),
+      TextCellValue('9876543210'),
+      TextCellValue('Kochi'),
+      TextCellValue('Laser hair reduction enquiry'),
+    ]);
+    return Uint8List.fromList(excel.encode()!);
   }
 }
