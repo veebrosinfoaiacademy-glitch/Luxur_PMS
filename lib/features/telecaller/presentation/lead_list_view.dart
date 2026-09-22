@@ -10,15 +10,29 @@ import '../utils/lead_search.dart';
 
 class LeadListView extends StatefulWidget {
   final TelecallerViewModel viewModel;
+  final String initialQuery;
+  final VoidCallback? onAddLead;
 
-  const LeadListView({super.key, required this.viewModel});
+  const LeadListView({
+    super.key,
+    required this.viewModel,
+    this.initialQuery = '',
+    this.onAddLead,
+  });
 
   @override
   State<LeadListView> createState() => _LeadListViewState();
 }
 
 class _LeadListViewState extends State<LeadListView> {
-  String _query = '';
+  late String _query = widget.initialQuery;
+  late final _searchController = TextEditingController(text: widget.initialQuery);
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +48,7 @@ class _LeadListViewState extends State<LeadListView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('My Leads', style: AppTypography.headingDisplay),
+                    Text('Patients', style: AppTypography.headingDisplay),
                     const SizedBox(height: 4),
                     Text(
                       'Converted leads you have added. Only visible to you.',
@@ -43,6 +57,19 @@ class _LeadListViewState extends State<LeadListView> {
                   ],
                 ),
               ),
+              if (widget.onAddLead != null) ...[
+                ElevatedButton.icon(
+                  key: const Key('lead_list_add_button'),
+                  onPressed: widget.onAddLead,
+                  icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                  label: const Text('Add Patient'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
               IconButton(
                 key: const Key('lead_list_refresh_button'),
                 onPressed: widget.viewModel.loadLeads,
@@ -68,6 +95,7 @@ class _LeadListViewState extends State<LeadListView> {
                 Expanded(
                   child: TextField(
                     key: const Key('lead_search_field'),
+                    controller: _searchController,
                     onChanged: (v) => setState(() => _query = v),
                     decoration: InputDecoration(
                       hintText: 'Search by name or phone number...',

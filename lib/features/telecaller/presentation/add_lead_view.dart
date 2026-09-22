@@ -77,7 +77,7 @@ class _AddLeadViewState extends State<AddLeadView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add Converted Lead', style: AppTypography.headingDisplay),
+            Text('Add Patient', style: AppTypography.headingDisplay),
             const SizedBox(height: 4),
             Text(
               'This is added to your lead list only — not the main clinic patient database. '

@@ -1,8 +1,9 @@
 import 'dart:typed_data';
+import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
 import '../../../core/utils/phone_utils.dart';
 
-/// One row read from the uploaded sheet, before it's checked against the
+/// One row read from the uploaded file, before it's checked against the
 /// database. `rowNumber` is 1-based and counts the header row as row 1,
 /// matching what a user sees if they open the file themselves.
 class ImportRow {
@@ -50,7 +51,7 @@ class DuplicateRow {
   DuplicateRow(this.row, this.normalizedPhone, this.duplicateOfRowNumber);
 }
 
-/// Result of reading + locally validating a sheet, before any database
+/// Result of reading + locally validating a file, before any database
 /// duplicate check happens (that check needs network access, so it's done
 /// separately per [ValidRow] — see TelecallerViewModel.importLeads).
 class ParsedImport {
@@ -72,7 +73,7 @@ class HeaderMappingException implements Exception {
   HeaderMappingException(this.message);
 }
 
-/// Reads converted-lead rows from an uploaded .xlsx file.
+/// Reads converted-lead rows from an uploaded .xlsx or .csv file.
 ///
 /// No import-template convention existed in the project, so this accepts a
 /// small set of case-insensitive header aliases rather than one rigid
@@ -97,18 +98,34 @@ class ExcelImportService {
       throw HeaderMappingException('The sheet is empty.');
     }
 
-    final headerRow = sheet.rows.first;
+    final rows = sheet.rows
+        .map((cells) => cells.map((c) => c?.value?.toString().trim() ?? '').toList())
+        .toList();
+    return _classify(rows);
+  }
+
+  ParsedImport parseCsv(String content) {
+    final decoded = Csv().decode(content);
+    final rows = decoded.map((row) => row.map((c) => c?.toString().trim() ?? '').toList()).toList();
+    if (rows.isEmpty) {
+      throw HeaderMappingException('The file is empty.');
+    }
+    return _classify(rows);
+  }
+
+  ParsedImport _classify(List<List<String>> rows) {
+    final headerRow = rows.first;
     final headerIndex = <String, int>{};
     for (var i = 0; i < headerRow.length; i++) {
-      final value = headerRow[i]?.value?.toString().trim().toLowerCase();
-      if (value != null && value.isNotEmpty) headerIndex[value] = i;
+      final value = headerRow[i].trim().toLowerCase();
+      if (value.isNotEmpty) headerIndex[value] = i;
     }
 
     final nameCol = _findColumn(headerIndex, _nameAliases);
     final phoneCol = _findColumn(headerIndex, _phoneAliases);
     if (nameCol == null || phoneCol == null) {
       throw HeaderMappingException(
-        'Could not find required columns. The sheet needs a Name column '
+        'Could not find required columns. The file needs a Name column '
         '(e.g. "Name") and a Phone column (e.g. "Phone" or "Mobile").',
       );
     }
@@ -121,9 +138,9 @@ class ExcelImportService {
     var totalDataRows = 0;
     final seenPhonesInFile = <String, int>{}; // normalized phone -> first row number
 
-    for (var r = 1; r < sheet.rows.length; r++) {
-      final cells = sheet.rows[r];
-      final isBlank = cells.every((c) => (c?.value?.toString().trim() ?? '').isEmpty);
+    for (var r = 1; r < rows.length; r++) {
+      final cells = rows[r];
+      final isBlank = cells.every((c) => c.isEmpty);
       if (isBlank) continue;
 
       totalDataRows++;
@@ -170,8 +187,8 @@ class ExcelImportService {
     return null;
   }
 
-  String _cell(List<Data?> cells, int index) {
+  String _cell(List<String> cells, int index) {
     if (index >= cells.length) return '';
-    return cells[index]?.value?.toString().trim() ?? '';
+    return cells[index].trim();
   }
 }

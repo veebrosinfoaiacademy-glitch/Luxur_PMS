@@ -123,6 +123,29 @@ void main() {
     expect(() => service.parse(bytes), throwsA(isA<HeaderMappingException>()));
   });
 
+  test('parseCsv imports well-formed CSV rows as valid', () {
+    final service = ExcelImportService();
+    const csv = 'Name,Phone,Address,Concern\r\nPriya Menon,9876543001,Kochi,Laser\r\nArjun Nair,9876543002,Ernakulam,Acne\r\n';
+
+    final result = service.parseCsv(csv);
+
+    expect(result.totalDataRows, 2);
+    expect(result.valid, hasLength(2));
+    expect(result.valid[0].row.rawName, 'Priya Menon');
+    expect(result.valid[0].normalizedPhone, '9876543001');
+  });
+
+  test('parseCsv rejects rows with invalid phone numbers the same way as Excel', () {
+    final service = ExcelImportService();
+    const csv = 'Name,Phone\r\nBad Row,123\r\n';
+
+    final result = service.parseCsv(csv);
+
+    expect(result.valid, isEmpty);
+    expect(result.invalid, hasLength(1));
+    expect(result.invalid.first.issue, RowIssue.invalidPhone);
+  });
+
   test('skips fully blank rows without counting them', () {
     final bytes = _buildSheet(
       ['Name', 'Phone'],

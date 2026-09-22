@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../../core/utils/phone_utils.dart';
 import '../models/telecaller_lead.dart';
@@ -111,12 +112,14 @@ class TelecallerViewModel extends ChangeNotifier {
     }
   }
 
-  /// Parses [bytes] as an .xlsx file and imports the valid, non-duplicate
-  /// rows. Throws [HeaderMappingException] if the sheet's columns can't be
-  /// understood at all (caller should show that as a blocking error before
-  /// any row-level summary makes sense).
-  Future<ImportSummary> importLeads(Uint8List bytes) async {
-    final parsed = ExcelImportService().parse(bytes);
+  /// Parses [bytes] as either an .xlsx or .csv file (per [isCsv]) and
+  /// imports the valid, non-duplicate rows. Throws [HeaderMappingException]
+  /// if the columns can't be understood at all (caller should show that as
+  /// a blocking error before any row-level summary makes sense).
+  Future<ImportSummary> importLeads(Uint8List bytes, {bool isCsv = false}) async {
+    final parsed = isCsv
+        ? ExcelImportService().parseCsv(utf8.decode(bytes, allowMalformed: true))
+        : ExcelImportService().parse(bytes);
 
     final candidatePhones = parsed.valid.map((v) => v.normalizedPhone).toSet();
     final alreadyInDb = await _repo.findExistingPhones(candidatePhones);

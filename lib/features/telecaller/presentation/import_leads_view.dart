@@ -30,11 +30,12 @@ class _ImportLeadsViewState extends State<ImportLeadsView> {
 
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['xlsx'],
+      allowedExtensions: ['xlsx', 'csv'],
     );
     if (result.isEmpty) return;
 
     final file = result.first;
+    final isCsv = file.extension?.toLowerCase() == 'csv';
     setState(() {
       _pickedFileName = file.name;
       _stage = _ImportStage.importing;
@@ -42,7 +43,7 @@ class _ImportLeadsViewState extends State<ImportLeadsView> {
 
     try {
       final bytes = await file.readAsBytes();
-      final summary = await widget.viewModel.importLeads(bytes);
+      final summary = await widget.viewModel.importLeads(bytes, isCsv: isCsv);
       if (!mounted) return;
       setState(() {
         _summary = summary;
@@ -57,7 +58,7 @@ class _ImportLeadsViewState extends State<ImportLeadsView> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _blockingError = 'Could not read this file. Make sure it is a valid .xlsx spreadsheet.';
+        _blockingError = 'Could not read this file. Make sure it is a valid .xlsx or .csv file.';
         _stage = _ImportStage.idle;
       });
     }
@@ -81,13 +82,13 @@ class _ImportLeadsViewState extends State<ImportLeadsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Import Converted Leads', style: AppTypography.headingDisplay),
+            Text('Import Patients', style: AppTypography.headingDisplay),
             const SizedBox(height: 4),
             Text(
-              'Upload an .xlsx file with your converted leads. Required columns: '
-              'Name and Phone. Address and Concern are optional. A Telecaller/Agent '
-              'column, if present, is ignored — imported leads are always attributed '
-              'to your account.',
+              'Upload an Excel (.xlsx) or CSV file with your converted leads. '
+              'Required columns: Name and Phone. Address and Concern are optional. '
+              'A Telecaller/Agent column, if present, is ignored — imported leads '
+              'are always attributed to your account.',
               style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
@@ -147,7 +148,7 @@ class _ImportLeadsViewState extends State<ImportLeadsView> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : const Icon(Icons.folder_open_outlined, size: 18),
-            label: Text(_stage == _ImportStage.importing ? 'Importing...' : 'Choose .xlsx File'),
+            label: Text(_stage == _ImportStage.importing ? 'Importing...' : 'Choose Excel / CSV File'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

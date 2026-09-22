@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/clinic_logo.dart';
 import '../../../shared/widgets/botanical_decoration.dart';
@@ -9,24 +8,32 @@ import '../presentation/telecaller_shell.dart';
 /// Telecaller-scoped sidebar. Deliberately a separate small widget rather
 /// than reusing shared/widgets/sidebar_nav.dart, which is coupled to the
 /// Admin AppViewModel/AppNavSection and out of scope to modify here.
+///
+/// Only Dashboard / Patients / Settings are top-level destinations here —
+/// Add Patient and Import Patients are actions reached from the Dashboard
+/// (and from the Patients list), not separate nav items, matching the
+/// approved design. Account/sign-out now lives in the top header's profile
+/// menu instead of a sidebar tile.
 class TelecallerSidebarNav extends StatelessWidget {
   final TelecallerSection currentSection;
   final ValueChanged<TelecallerSection> onSectionSelected;
-  final AuthService authService;
 
   const TelecallerSidebarNav({
     super.key,
     required this.currentSection,
     required this.onSectionSelected,
-    required this.authService,
   });
 
   @override
   Widget build(BuildContext context) {
+    final onDashboardOrItsActions = currentSection == TelecallerSection.dashboard ||
+        currentSection == TelecallerSection.addLead ||
+        currentSection == TelecallerSection.import;
+
     return Container(
       width: 250,
       decoration: BoxDecoration(
-        color: AppColors.sidebarBg,
+        color: Colors.white,
         border: Border(right: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: SingleChildScrollView(
@@ -45,130 +52,30 @@ class TelecallerSidebarNav extends StatelessWidget {
                     key: const Key('nav_telecaller_dashboard'),
                     icon: Icons.home_outlined,
                     label: 'Dashboard',
-                    isSelected: currentSection == TelecallerSection.dashboard,
+                    isSelected: onDashboardOrItsActions,
                     onTap: () => onSectionSelected(TelecallerSection.dashboard),
                   ),
                   const SizedBox(height: 6),
                   _NavItem(
-                    key: const Key('nav_telecaller_add_lead'),
-                    icon: Icons.person_add_alt_1_outlined,
-                    label: 'Add Converted Lead',
-                    isSelected: currentSection == TelecallerSection.addLead,
-                    onTap: () => onSectionSelected(TelecallerSection.addLead),
-                  ),
-                  const SizedBox(height: 6),
-                  _NavItem(
-                    key: const Key('nav_telecaller_import'),
-                    icon: Icons.upload_file_outlined,
-                    label: 'Import Excel',
-                    isSelected: currentSection == TelecallerSection.import,
-                    onTap: () => onSectionSelected(TelecallerSection.import),
-                  ),
-                  const SizedBox(height: 6),
-                  _NavItem(
                     key: const Key('nav_telecaller_leads'),
-                    icon: Icons.list_alt_outlined,
-                    label: 'My Leads',
+                    icon: Icons.people_outline_rounded,
+                    label: 'Patients',
                     isSelected: currentSection == TelecallerSection.leadList,
                     onTap: () => onSectionSelected(TelecallerSection.leadList),
                   ),
-                  const SizedBox(height: 14),
-                  Divider(color: AppColors.border, height: 1),
-                  const SizedBox(height: 10),
-                  _ProfileTile(authService: authService),
+                  const SizedBox(height: 6),
+                  _NavItem(
+                    key: const Key('nav_telecaller_settings'),
+                    icon: Icons.settings_outlined,
+                    label: 'Settings',
+                    isSelected: currentSection == TelecallerSection.settings,
+                    onTap: () => onSectionSelected(TelecallerSection.settings),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 40),
             const BotanicalDecoration(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileTile extends StatefulWidget {
-  final AuthService authService;
-  const _ProfileTile({required this.authService});
-
-  @override
-  State<_ProfileTile> createState() => _ProfileTileState();
-}
-
-class _ProfileTileState extends State<_ProfileTile> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = widget.authService.displayName;
-    final initials = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: _isHovered ? AppColors.primaryBgLight : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-              child: Center(
-                child: Text(
-                  initials,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  Text(
-                    'Telecaller',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
-                  ),
-                ],
-              ),
-            ),
-            Tooltip(
-              message: 'Sign out',
-              child: InkWell(
-                key: const Key('telecaller_sign_out'),
-                onTap: widget.authService.logout,
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Icon(
-                    Icons.logout_rounded,
-                    size: 17,
-                    color: _isHovered ? AppColors.primary : const Color(0xFF94A3B8),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

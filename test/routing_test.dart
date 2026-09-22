@@ -12,7 +12,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('login_submit_button')), findsOneWidget);
-    expect(find.text('Telecaller Dashboard'), findsNothing);
+    expect(find.byKey(const Key('nav_telecaller_dashboard')), findsNothing);
   });
 
   testWidgets('a telecaller account is routed to the Telecaller area, not the Admin shell', (tester) async {
@@ -21,15 +21,15 @@ void main() {
     await tester.pumpWidget(const PMSApp());
     await tester.pump();
 
-    expect(find.text('Telecaller Dashboard'), findsOneWidget);
-    // The Telecaller nav must not expose any Admin-only destination.
-    expect(find.text('Patients'), findsNothing);
-    expect(find.text('Pharmacy Bills'), findsNothing);
-    expect(find.text('Settings'), findsNothing);
-    // And the Telecaller's own actions must be present.
-    expect(find.byKey(const Key('nav_telecaller_add_lead')), findsOneWidget);
-    expect(find.byKey(const Key('nav_telecaller_import')), findsOneWidget);
+    // Telecaller's own destinations and actions are present.
+    expect(find.byKey(const Key('nav_telecaller_dashboard')), findsOneWidget);
     expect(find.byKey(const Key('nav_telecaller_leads')), findsOneWidget);
+    expect(find.byKey(const Key('nav_telecaller_settings')), findsOneWidget);
+    expect(find.byKey(const Key('action_add_lead')), findsOneWidget);
+    expect(find.byKey(const Key('action_import')), findsOneWidget);
+    // Admin-only destinations/content must never reach this shell.
+    expect(find.text('Pharmacy Bills'), findsNothing);
+    expect(find.text('Good Morning, Admin'), findsNothing);
 
     PocketBaseClient.instance.authStore.clear();
   });
@@ -54,19 +54,21 @@ void main() {
 
     // Existing Admin dashboard content, untouched by this task.
     expect(find.text('Good Morning, Admin'), findsOneWidget);
-    expect(find.text('Telecaller Dashboard'), findsNothing);
+    expect(find.byKey(const Key('nav_telecaller_dashboard')), findsNothing);
 
     PocketBaseClient.instance.authStore.clear();
   });
 
-  testWidgets('signing out returns to the login screen', (tester) async {
+  testWidgets('signing out from the Telecaller profile menu returns to the login screen', (tester) async {
     fakeSignIn(PocketBaseClient.instance, role: 'telecaller', name: 'Test Telecaller');
     await tester.pumpWidget(const PMSApp());
     await tester.pump();
-    expect(find.text('Telecaller Dashboard'), findsOneWidget);
+    expect(find.byKey(const Key('nav_telecaller_dashboard')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('telecaller_sign_out')));
-    await tester.pump();
+    await tester.tap(find.byKey(const Key('telecaller_header_profile_menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('login_submit_button')), findsOneWidget);
   });
