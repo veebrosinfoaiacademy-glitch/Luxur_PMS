@@ -129,10 +129,11 @@ class StatusBadge extends StatelessWidget {
           ],
           Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
               color: text,
+              letterSpacing: 0.1,
             ),
           ),
         ],

@@ -6,7 +6,7 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme();
+    final baseTextTheme = GoogleFonts.interTextTheme();
 
     return ThemeData(
       useMaterial3: true,
@@ -24,25 +24,29 @@ class AppTheme {
         onError: Colors.white,
       ),
       textTheme: baseTextTheme.copyWith(
-        displayLarge: GoogleFonts.ebGaramond(
+        displayLarge: GoogleFonts.outfit(
           fontSize: 32,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: AppColors.textDark,
+          letterSpacing: -0.6,
         ),
-        headlineLarge: GoogleFonts.ebGaramond(
+        headlineLarge: GoogleFonts.outfit(
           fontSize: 26,
           fontWeight: FontWeight.w600,
           color: AppColors.textDark,
+          letterSpacing: -0.4,
         ),
-        headlineMedium: GoogleFonts.ebGaramond(
+        headlineMedium: GoogleFonts.outfit(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textDark,
+          letterSpacing: -0.3,
         ),
-        titleLarge: GoogleFonts.ebGaramond(
+        titleLarge: GoogleFonts.outfit(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textDark,
+          letterSpacing: -0.2,
         ),
       ),
       cardTheme: CardThemeData(
@@ -70,7 +74,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        hintStyle: GoogleFonts.plusJakartaSans(
+        hintStyle: GoogleFonts.inter(
           fontSize: 13,
           color: AppColors.textMuted,
         ),
@@ -84,9 +88,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
           ),
         ),
       ),
@@ -98,9 +103,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
           ),
         ),
       ),

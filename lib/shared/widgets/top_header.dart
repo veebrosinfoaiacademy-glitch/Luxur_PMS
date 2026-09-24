@@ -47,7 +47,7 @@ class TopHeader extends StatelessWidget {
                           onChanged: viewModel.setSearchQuery,
                           decoration: InputDecoration(
                             hintText: 'Search by patient ID or phone number...',
-                            hintStyle: GoogleFonts.plusJakartaSans(
+                            hintStyle: GoogleFonts.inter(
                               fontSize: 13,
                               color: const Color(0xFF8F9E94),
                             ),
@@ -57,7 +57,7 @@ class TopHeader extends StatelessWidget {
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.inter(
                             fontSize: 13.5,
                             color: AppColors.textPrimary,
                           ),
@@ -133,7 +133,7 @@ class TopHeader extends StatelessWidget {
                       children: [
                         const Icon(Icons.person_outline, size: 18),
                         const SizedBox(width: 10),
-                        Text('Admin Profile', style: GoogleFonts.plusJakartaSans(fontSize: 13)),
+                        Text('Admin Profile', style: GoogleFonts.inter(fontSize: 13)),
                       ],
                     ),
                   ),
@@ -143,7 +143,7 @@ class TopHeader extends StatelessWidget {
                       children: [
                         const Icon(Icons.settings_outlined, size: 18),
                         const SizedBox(width: 10),
-                        Text('Clinic Settings', style: GoogleFonts.plusJakartaSans(fontSize: 13)),
+                        Text('Clinic Settings', style: GoogleFonts.inter(fontSize: 13)),
                       ],
                     ),
                   ),
@@ -154,7 +154,7 @@ class TopHeader extends StatelessWidget {
                       children: [
                         const Icon(Icons.logout, size: 18, color: Color(0xFFDC2626)),
                         const SizedBox(width: 10),
-                        Text('Logout', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFFDC2626))),
+                        Text('Logout', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFFDC2626))),
                       ],
                     ),
                   ),
@@ -174,7 +174,7 @@ class TopHeader extends StatelessWidget {
                         child: Center(
                           child: Text(
                             'AD',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -190,15 +190,16 @@ class TopHeader extends StatelessWidget {
                         children: [
                           Text(
                             'Admin',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.textDark,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           Text(
                             'Veebros Clinic',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: AppColors.textMuted,

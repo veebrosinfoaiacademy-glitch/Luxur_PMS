@@ -52,15 +52,19 @@ class _PMSAppState extends State<PMSApp> {
       return LoginView(authService: _authService);
     }
 
-    // Telecaller reaches its own restricted area and nothing else. Every
-    // other role currently falls through to the existing (unmodified)
-    // Admin shell — building out Doctor/HR/Chairman areas is out of scope
-    // here; real access control for all of them is enforced server-side by
+    // Telecaller reaches its own restricted area and nothing else. Admin
+    // and Doctor share the clinic shell, which picks the right dashboard
+    // and navigation for the role; HR/Chairman fall through to it too for
+    // now. Real access control for every role is enforced server-side by
     // PocketBase collection rules regardless of what the Flutter UI shows.
     if (_authService.role == 'telecaller') {
       return TelecallerShell(authService: _authService, pb: PocketBaseClient.instance);
     }
 
-    return AppShell(viewModel: AppViewModel());
+    return AppShell(
+      viewModel: AppViewModel(),
+      authService: _authService,
+      pb: PocketBaseClient.instance,
+    );
   }
 }

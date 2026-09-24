@@ -3,19 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/state/app_view_model.dart';
+import '../../../core/state/clinic_view_model.dart';
 import '../../../shared/widgets/app_confirmation_dialog.dart';
+import 'treatment_plans_panel.dart';
 
 class SettingsView extends StatefulWidget {
   final AppViewModel viewModel;
+  final ClinicViewModel clinic;
 
-  const SettingsView({super.key, required this.viewModel});
+  const SettingsView({super.key, required this.viewModel, required this.clinic});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  int _selectedSettingsTab = 0; // 0 = Doctor Management, 1 = Clinic Profile
+  // 0 = Doctor Management, 1 = Clinic Profile, 2 = Treatment Plans
+  int _selectedSettingsTab = 0;
 
   final List<Map<String, dynamic>> _doctors = [
     {
@@ -66,12 +70,18 @@ class _SettingsViewState extends State<SettingsView> {
               _buildTabButton(0, 'Doctor Management', Icons.medical_services_outlined),
               const SizedBox(width: 12),
               _buildTabButton(1, 'Clinic Profile & Branding', Icons.business_outlined),
+              const SizedBox(width: 12),
+              _buildTabButton(2, 'Treatment Plans', Icons.spa_outlined),
             ],
           ),
           const SizedBox(height: 24),
 
           // Content
-          if (_selectedSettingsTab == 0) _buildDoctorManagement() else _buildClinicProfile(),
+          switch (_selectedSettingsTab) {
+            0 => _buildDoctorManagement(),
+            1 => _buildClinicProfile(),
+            _ => TreatmentPlansPanel(clinic: widget.clinic),
+          },
         ],
       ),
     );

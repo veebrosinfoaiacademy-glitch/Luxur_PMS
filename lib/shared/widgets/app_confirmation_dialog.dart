@@ -87,7 +87,7 @@ class AppConfirmationDialog extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               message,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 13,
                 color: const Color(0xFF64748B),
                 height: 1.45,
@@ -106,7 +106,7 @@ class AppConfirmationDialog extends StatelessWidget {
                     ),
                     child: Text(
                       'Cancel',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: const Color(0xFF374151)),
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: const Color(0xFF374151)),
                     ),
                   ),
                 ),
@@ -123,7 +123,7 @@ class AppConfirmationDialog extends StatelessWidget {
                     ),
                     child: Text(
                       confirmText,
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.white),
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white),
                     ),
                   ),
                 ),

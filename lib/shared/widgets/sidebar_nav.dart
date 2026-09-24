@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/auth/auth_service.dart';
 import '../../core/state/app_view_model.dart';
 import 'clinic_logo.dart';
 import 'botanical_decoration.dart';
 
 class SidebarNav extends StatelessWidget {
   final AppViewModel viewModel;
+  final AuthService authService;
 
-  const SidebarNav({super.key, required this.viewModel});
+  /// Pharmacy Bills is a front-office responsibility, so the Doctor's nav
+  /// leaves it out. Access itself is enforced server-side.
+  final bool isDoctor;
+
+  const SidebarNav({
+    super.key,
+    required this.viewModel,
+    required this.authService,
+    this.isDoctor = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +36,13 @@ class SidebarNav extends StatelessWidget {
         children: [
           // Clinic Logo Area
           const Padding(
-            padding: EdgeInsets.only(left: 24, top: 26, bottom: 32, right: 16),
-            child: ClinicLogo(),
+            padding: EdgeInsets.only(left: 16, top: 22, bottom: 24, right: 16),
+            child: Center(
+              child: ClinicLogo(
+                height: 44,
+                alignment: Alignment.center,
+              ),
+            ),
           ),
 
           // Navigation Links
@@ -48,13 +64,15 @@ class SidebarNav extends StatelessWidget {
                       viewModel.currentSection == AppNavSection.patientDetail,
                   onTap: () => viewModel.navigateTo(AppNavSection.patients),
                 ),
-                const SizedBox(height: 6),
-                _NavItem(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Pharmacy Bills',
-                  isSelected: viewModel.currentSection == AppNavSection.pharmacyBills,
-                  onTap: () => viewModel.navigateTo(AppNavSection.pharmacyBills),
-                ),
+                if (!isDoctor) ...[
+                  const SizedBox(height: 6),
+                  _NavItem(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Pharmacy Bills',
+                    isSelected: viewModel.currentSection == AppNavSection.pharmacyBills,
+                    onTap: () => viewModel.navigateTo(AppNavSection.pharmacyBills),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 _NavItem(
                   icon: Icons.settings_outlined,
@@ -66,8 +84,8 @@ class SidebarNav extends StatelessWidget {
                 const Divider(color: AppColors.border, height: 1),
                 const SizedBox(height: 10),
 
-                // Integrated Admin Profile & Signout Tile
-                _AdminProfileTile(),
+                // Integrated Profile & Signout Tile
+                _ProfileTile(authService: authService),
               ],
             ),
           ),
@@ -82,13 +100,25 @@ class SidebarNav extends StatelessWidget {
   }
 }
 
-class _AdminProfileTile extends StatefulWidget {
+class _ProfileTile extends StatefulWidget {
+  const _ProfileTile({required this.authService});
+
+  final AuthService authService;
+
   @override
-  State<_AdminProfileTile> createState() => _AdminProfileTileState();
+  State<_ProfileTile> createState() => _ProfileTileState();
 }
 
-class _AdminProfileTileState extends State<_AdminProfileTile> {
+class _ProfileTileState extends State<_ProfileTile> {
   bool _isHovered = false;
+
+  String get _initials {
+    final name = widget.authService.displayName.trim();
+    if (name.isEmpty) return '??';
+    final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,8 +143,8 @@ class _AdminProfileTileState extends State<_AdminProfileTile> {
               ),
               child: Center(
                 child: Text(
-                  'AD',
-                  style: GoogleFonts.plusJakartaSans(
+                  _initials,
+                  style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -129,16 +159,18 @@ class _AdminProfileTileState extends State<_AdminProfileTile> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Admin',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                    widget.authService.displayName,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   Text(
                     'Veebros Clinic',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       fontSize: 10.5,
                       color: AppColors.textMuted,
                     ),
@@ -149,14 +181,7 @@ class _AdminProfileTileState extends State<_AdminProfileTile> {
             Tooltip(
               message: 'Sign out',
               child: InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Admin signed out successfully (Visual Mode)'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
+                onTap: widget.authService.logout,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
@@ -231,7 +256,7 @@ class _NavItemState extends State<_NavItem> {
               const SizedBox(width: 14),
               Text(
                 widget.label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 13.5,
                   fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: contentColor,

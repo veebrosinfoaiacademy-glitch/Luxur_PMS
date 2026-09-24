@@ -221,10 +221,11 @@ class HalfA4BillDialog extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               patientName,
-                              style: GoogleFonts.ebGaramond(
+                              style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textDark,
+                                letterSpacing: -0.2,
                               ),
                             ),
                             Text(
@@ -368,10 +369,11 @@ class HalfA4BillDialog extends StatelessWidget {
                               Text('Total Paid:  ', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700)),
                               Text(
                                 '₹$amount',
-                                style: GoogleFonts.ebGaramond(
+                                style: GoogleFonts.outfit(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.primary,
+                                  letterSpacing: -0.3,
                                 ),
                               ),
                             ],

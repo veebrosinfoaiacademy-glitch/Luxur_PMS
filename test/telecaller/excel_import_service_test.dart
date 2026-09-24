@@ -160,4 +160,155 @@ void main() {
     expect(result.totalDataRows, 1);
     expect(result.valid, hasLength(1));
   });
+
+  group('Expected Arrival Date column', () {
+    Uint8List sheetWithCells(List<String> headers, List<List<xl.CellValue>> rows) {
+      final excel = xl.Excel.createExcel();
+      final name = excel.getDefaultSheet()!;
+      excel.appendRow(name, headers.map((h) => xl.TextCellValue(h)).toList());
+      for (final row in rows) {
+        excel.appendRow(name, row);
+      }
+      return Uint8List.fromList(excel.encode()!);
+    }
+
+    test('the downloadable template now has an Expected Arrival Date column', () {
+      final excel = xl.Excel.decodeBytes(service.buildTemplateBytes());
+      final sheet = excel.tables[excel.tables.keys.first]!;
+      final header = sheet.rows.first.map((c) => c?.value.toString()).toList();
+
+      expect(header, ['Name', 'Phone', 'Expected Arrival Date', 'Address', 'Concern']);
+    });
+
+    test('the template round-trips: its example row imports with a future date', () {
+      final now = DateTime(2026, 9, 24);
+
+      final result = service.parse(service.buildTemplateBytes(now: now));
+
+      expect(result.invalid, isEmpty);
+      expect(result.valid, hasLength(1));
+      // Example date is a week out, so importing the template untouched
+      // never creates an already-overdue lead.
+      expect(result.valid.first.row.expectedArrivalDate, DateTime(2026, 10, 1));
+    });
+
+    test('reads a real Excel date cell (not just text)', () {
+      final bytes = sheetWithCells(
+        ['Name', 'Phone', 'Expected Arrival Date'],
+        [
+          [
+            xl.TextCellValue('Priya Menon'),
+            xl.TextCellValue('9876543001'),
+            xl.DateCellValue(year: 2026, month: 9, day: 25),
+          ],
+        ],
+      );
+
+      final result = service.parse(bytes);
+
+      expect(result.valid, hasLength(1));
+      expect(result.valid.first.row.expectedArrivalDate, DateTime(2026, 9, 25));
+    });
+
+    test('accepts the common text date formats, read day-first', () {
+      final formats = {
+        '25/09/2026': DateTime(2026, 9, 25),
+        '5/9/2026': DateTime(2026, 9, 5), // 5 September, not 9 May
+        '25-09-2026': DateTime(2026, 9, 25),
+        '25.09.2026': DateTime(2026, 9, 25),
+        '2026-09-25': DateTime(2026, 9, 25),
+        '2026-09-25T00:00:00.000Z': DateTime(2026, 9, 25),
+        '25 Sep 2026': DateTime(2026, 9, 25),
+        '25 September 2026': DateTime(2026, 9, 25),
+        '25-Sep-2026': DateTime(2026, 9, 25),
+        '46290': DateTime(2026, 9, 25), // Excel serial number
+      };
+      for (final entry in formats.entries) {
+        expect(
+          ExcelImportService.parseExpectedArrivalDate(entry.key),
+          entry.value,
+          reason: '"${entry.key}" should parse',
+        );
+      }
+    });
+
+    test('rejects text that is not a real date', () {
+      for (final bad in ['tomorrow', '31/02/2026', '32/01/2026', '13/13/2026', '25/09/26', '01/01/1999', '2026-13-01']) {
+        expect(
+          ExcelImportService.parseExpectedArrivalDate(bad),
+          isNull,
+          reason: '"$bad" should not parse',
+        );
+      }
+    });
+
+    test('a filled-in but unreadable date rejects that row instead of dropping the date', () {
+      final bytes = _buildSheet(
+        ['Name', 'Phone', 'Expected Arrival Date'],
+        [
+          ['Good Row', '9876543011', '25/09/2026'],
+          ['Bad Date Row', '9876543012', 'next week'],
+        ],
+      );
+
+      final result = service.parse(bytes);
+
+      expect(result.valid, hasLength(1));
+      expect(result.invalid, hasLength(1));
+      expect(result.invalid.first.issue, RowIssue.invalidExpectedArrivalDate);
+      expect(result.invalid.first.reason, contains('next week'));
+    });
+
+    test('a blank date cell is allowed and imports without a date', () {
+      final bytes = _buildSheet(
+        ['Name', 'Phone', 'Expected Arrival Date'],
+        [
+          ['No Date Yet', '9876543013', ''],
+        ],
+      );
+
+      final result = service.parse(bytes);
+
+      expect(result.valid, hasLength(1));
+      expect(result.valid.first.row.expectedArrivalDate, isNull);
+    });
+
+    test('a file with no date column at all still imports exactly as before', () {
+      final bytes = _buildSheet(
+        ['Name', 'Phone'],
+        [
+          ['Legacy File Row', '9876543014'],
+        ],
+      );
+
+      final result = service.parse(bytes);
+
+      expect(result.valid, hasLength(1));
+      expect(result.invalid, isEmpty);
+      expect(result.valid.first.row.expectedArrivalDate, isNull);
+    });
+
+    test('recognises the alternative header "Expected Clinic Arrival Date"', () {
+      final bytes = _buildSheet(
+        ['Name', 'Phone', 'Expected Clinic Arrival Date'],
+        [
+          ['Alias Header', '9876543015', '01/10/2026'],
+        ],
+      );
+
+      final result = service.parse(bytes);
+
+      expect(result.valid.first.row.expectedArrivalDate, DateTime(2026, 10, 1));
+    });
+
+    test('CSV files carry the date column through too', () {
+      const csv = 'Name,Phone,Expected Arrival Date\r\nCsv Lead,9876543016,25/09/2026\r\nBad Csv,9876543017,soon\r\n';
+
+      final result = service.parseCsv(csv);
+
+      expect(result.valid, hasLength(1));
+      expect(result.valid.first.row.expectedArrivalDate, DateTime(2026, 9, 25));
+      expect(result.invalid.single.issue, RowIssue.invalidExpectedArrivalDate);
+    });
+  });
 }
